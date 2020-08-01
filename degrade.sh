@@ -10,25 +10,38 @@ FINAL="$INNAME.f.wav"
 
 sox ${INFILE} -b 8 ${EIGHTK} rate 8k channels 1
 
-./sndmanip -k -i ${EIGHTK} -o ${EIGHTKMOD}
+./sndmanip -p -i ${EIGHTK} -o ${EIGHTKMOD}
 
-#~ ./sndmanip -r -i ${EIGHTK} -o r.${EIGHTKMOD}
-#~ ./sndmanip -k -i ${EIGHTK} -o k.${EIGHTKMOD}
-#~ ./sndmanip -p -i ${EIGHTK} -o p.${EIGHTKMOD}
-#~ ./sndmanip -c -i ${EIGHTK} -o c.${EIGHTKMOD}
-#~ ./sndmanip -rp -i ${EIGHTK} -o rp.${EIGHTKMOD}
-#~ ./sndmanip -rc -i ${EIGHTK} -o rc.${EIGHTKMOD}
-#~ ./sndmanip -kr -i ${EIGHTK} -o kr.${EIGHTKMOD}
-#~ ./sndmanip -kp -i ${EIGHTK} -o kp.${EIGHTKMOD}
-#~ ./sndmanip -kc -i ${EIGHTK} -o kc.${EIGHTKMOD}
-#~ ./sndmanip -pc -i ${EIGHTK} -o pc.${EIGHTKMOD}
-#~ ./sndmanip -kpr -i ${EIGHTK} -o kpr.${EIGHTKMOD}
-#~ ./sndmanip -kpc -i ${EIGHTK} -o kpc.${EIGHTKMOD}
-#~ ./sndmanip -kprc -i ${EIGHTK} -o kprc.${EIGHTKMOD}
+FLAGS="
+r   
+k   
+p   
+c   
+m 
+rp  
+rc  
+rm 
+kr  
+kp  
+kc 
+km 
+pc  
+pm 
+kpr 
+kprm 
+kpc 
+kpcm 
+kprc
+kprcm
+"
 
-sox ${EIGHTKMOD} -b 16 ${SIXTEENK} norm
-sox ${SIXTEENK} ${NOISE} trim 0 1
-sox ${NOISE} -n noiseprof ${NOISE}.prof
-sox ${SIXTEENK} ${FINAL} noisered ${NOISE}.prof .2
+for FLAG in ${FLAGS}; do
+	./sndmanip -${FLAG} -i ${EIGHTK} -o ${FLAG}.${EIGHTKMOD}
+	sox ${FLAG}.${EIGHTKMOD} -b 16 ${FLAG}.${SIXTEENK} norm
+	sox ${FLAG}.${SIXTEENK} ${FLAG}.${NOISE} trim 0 1
+	sox ${FLAG}.${NOISE} -n noiseprof ${FLAG}.${NOISE}.prof
+	sox ${FLAG}.${SIXTEENK} ${FLAG}.${FINAL} noisered ${FLAG}.${NOISE}.prof .2
+	rm -rf ${FLAG}.${EIGHTKMOD} ${FLAG}.${SIXTEENK} ${FLAG}.${NOISE} ${FLAG}.${NOISE}.prof
+done
 
-rm -rf ${EIGHTK} ${EIGHTKMOD} ${SIXTEENK} ${NOISE} ${NOISE}.prof
+#~ rm -rf ${EIGHTK}

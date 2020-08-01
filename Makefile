@@ -10,7 +10,7 @@ MAIN_NAME = sndmanip
 all: $(MAIN_NAME)
 
 $(MAIN_NAME):
-	gcc $(MAIN_SRC) -Wall -o $(MAIN_NAME)
+	gcc $(MAIN_SRC) -Wall -o $(MAIN_NAME) -lm
 
 clean:
 	rm $(MAIN_NAME) $(SOURCES_O) $(SOURCES_GCH)

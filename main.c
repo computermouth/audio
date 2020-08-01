@@ -3,13 +3,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <math.h>
 
 typedef enum {
-	NONE     = 0b0000000,
-	KILL     = 0b0000001,
-	PREDATOR = 0b0000010,
-	CHIMES   = 0b0000100,
-	RADIO    = 0b0001000
+	NONE      = 0b0000000,
+	KILL      = 0b0000001,
+	PREDATOR  = 0b0000010,
+	CHIMES    = 0b0000100,
+	RADIO     = 0b0001000,
+	MODULATOR = 0b0010000
 } voice;
 
 int print_help(char * bin){
@@ -20,15 +22,16 @@ int print_help(char * bin){
 	printf("\t%s [-h] [-kpcr] -i INFILE -o OUTFILE\n", base);
 	printf("\n");
 	printf("Required:\n");
-	printf("\t-h  help     -- prints out this message\n");
-	printf("\t-i  input    -- path to the input file\n");
-	printf("\t-?  voice    -- at least one voice flag\n");
+	printf("\t-h  help      -- prints out this message\n");
+	printf("\t-i  input     -- path to the input file\n");
+	printf("\t-?  voice     -- at least one voice flag\n");
 	printf("\n");
 	printf("Voices:\n");
-	printf("\t-k  kill     -- flattens all but every 11th byte\n");
-	printf("\t-p  predator -- sounds like the predator, spikes levels\n");
-	printf("\t-c  chimes   -- reduce sound to chimes\n");
-	printf("\t-r  radio    -- old tinny radio sound\n");
+	printf("\t-k  kill      -- flattens all but every 11th byte\n");
+	printf("\t-p  predator  -- sounds like the predator, spikes levels\n");
+	printf("\t-c  chimes    -- reduce sound to chimes\n");
+	printf("\t-r  radio     -- old tinny radio sound\n");
+	printf("\t-m  modulator -- sine wav ring modulator\n");
 	printf("\n");
 	
 	return 1;
@@ -45,7 +48,7 @@ int main(int argc, char **argv){
 	
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "hkpcri:o:")) != -1)
+	while ((c = getopt (argc, argv, "hkpcrmi:o:")) != -1)
 		switch (c){
 			case 'k':
 				v |= KILL;
@@ -58,6 +61,9 @@ int main(int argc, char **argv){
 				break;
 			case 'r':
 				v |= RADIO;
+				break;
+			case 'm':
+				v |= MODULATOR;
 				break;
 			case 'h':
 				return print_help(argv[0]);
@@ -161,7 +167,8 @@ int main(int argc, char **argv){
 			//~ if (count % 5 != 0)
 				//~ outbyte = 128;
 			if (count % 3 == 0){
-				outbyte = getrc - count;
+				//~ outbyte = getrc - count;
+				outbyte = getrc * 10;
 			}
 		}
 		
@@ -175,6 +182,15 @@ int main(int argc, char **argv){
 			if (count % 3 == 0 && getrc != 0){
 				outbyte = count % getrc;
 			}
+		}
+		
+		if (v & MODULATOR){
+			unsigned int tmpbase = (getrc * (sin( (float)(count % 8000) / 8000 * M_PI * 2) + 1.0));
+			if(tmpbase > 255)
+				tmpbase = 255;
+			//~ printf("%03u %03u %f\n", base[i], tmpbase, (sin( (float)i / 128.0 * M_PI * 2) + 1.0));
+			//~ outbyte = getrc * sin(2 * M_PI * 500 * (count % 8000) / 7999);
+			outbyte = tmpbase;
 		}
 
 		write:
